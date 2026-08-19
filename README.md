@@ -3,7 +3,8 @@
 A simple habit tracker that lets you log daily habits and visualize your consistency with a GitHub-style contribution heatmap. Built as a Chingu Solo Project (Developer Track, Tier 1).
 
 🔗 **Live demo:** https://jht127.github.io/habit-tracker-heatmap/
-📦 **Repo:** [https://github.com/JHT127/habit-tracker-heatmap]
+
+📦 **Repo:** https://github.com/JHT127/habit-tracker-heatmap
 
 ## Features
 
