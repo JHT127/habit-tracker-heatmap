@@ -1,0 +1,499 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Habit · heatmap tracker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f6f8fa;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: #1e1e1e;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .app {
+      max-width: 820px;
+      width: 100%;
+      background: white;
+      padding: 2rem 1.8rem 2.5rem;
+      border-radius: 32px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+      transition: background 0.2s;
+    }
+
+    h1 {
+      font-weight: 600;
+      font-size: 2rem;
+      letter-spacing: -0.3px;
+      margin-bottom: 0.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    h1 small {
+      font-size: 1rem;
+      font-weight: 400;
+      color: #6b7280;
+      margin-left: 0.3rem;
+    }
+
+    .stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem 3rem;
+      margin: 1.2rem 0 1.8rem 0;
+      padding: 0.6rem 0 0.8rem 0;
+      border-bottom: 1px solid #eaeef2;
+    }
+    .stat {
+      display: flex;
+      align-items: baseline;
+      gap: 0.3rem;
+    }
+    .stat-label {
+      font-size: 0.9rem;
+      color: #5b6773;
+      letter-spacing: 0.02em;
+    }
+    .stat-number {
+      font-weight: 600;
+      font-size: 1.5rem;
+      line-height: 1.2;
+      color: #1e1e1e;
+    }
+    .stat-number.green {
+      color: #1e7a3a;
+    }
+
+    .add-form {
+      display: flex;
+      gap: 0.6rem;
+      margin: 1.2rem 0 1.8rem 0;
+      flex-wrap: wrap;
+    }
+    .add-form input {
+      flex: 1 1 180px;
+      padding: 0.6rem 1rem;
+      border: 1px solid #d0d7de;
+      border-radius: 40px;
+      font-size: 0.95rem;
+      background: white;
+      transition: 0.15s;
+    }
+    .add-form input:focus {
+      border-color: #2c7a3a;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(44, 122, 58, 0.15);
+    }
+    .btn {
+      background: #eef2f5;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 40px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: #1e1e1e;
+      cursor: pointer;
+      transition: 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      border: 1px solid transparent;
+    }
+    .btn-primary {
+      background: #2c7a3a;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #1e5f2c;
+      box-shadow: 0 2px 6px rgba(44, 122, 58, 0.25);
+    }
+    .btn-danger {
+      background: transparent;
+      color: #8b3a3a;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.85rem;
+    }
+    .btn-danger:hover {
+      background: #fee6e6;
+    }
+    .btn-habit-toggle {
+      background: #eef2f5;
+      min-width: 80px;
+      justify-content: center;
+      font-size: 0.85rem;
+    }
+    .btn-habit-toggle.done {
+      background: #2c7a3a;
+      color: white;
+    }
+    .btn-habit-toggle.done:hover {
+      background: #1e5f2c;
+    }
+
+    .habit-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin: 1.2rem 0 1.8rem 0;
+    }
+    .habit-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.8rem 0.5rem 1.2rem;
+      background: #f9fafb;
+      border-radius: 60px;
+      border: 1px solid #eaeef2;
+      transition: background 0.1s;
+    }
+    .habit-name {
+      font-weight: 500;
+      font-size: 1rem;
+      word-break: break-word;
+      max-width: 60%;
+    }
+    .habit-actions {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .heatmap-wrapper {
+      margin: 2.2rem 0 0.8rem 0;
+    }
+    .heatmap-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.4rem;
+    }
+    .heatmap-header span {
+      font-size: 0.8rem;
+      color: #5b6773;
+      letter-spacing: 0.02em;
+    }
+    .heatmap-grid {
+      display: grid;
+      grid-template-rows: repeat(7, 1fr);
+      grid-auto-flow: column;
+      gap: 3px;
+      background: white;
+      padding: 6px 0 2px 0;
+    }
+    .day-square {
+      aspect-ratio: 1 / 1;
+      border-radius: 3px;
+      background: #eaeef2;
+      transition: 0.08s ease;
+      cursor: default;
+      position: relative;
+    }
+    .day-square[data-level="0"] { background: #eaeef2; }
+    .day-square[data-level="1"] { background: #b3e0b0; }
+    .day-square[data-level="2"] { background: #7bc97a; }
+    .day-square[data-level="3"] { background: #41a64b; }
+    .day-square[data-level="4"] { background: #1e7a3a; }
+    .day-square[data-level="5"] { background: #0f5528; }
+
+    .day-square:hover {
+      transform: scale(1.18);
+      z-index: 5;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    @media (max-width: 500px) {
+      .app { padding: 1.2rem; }
+      .habit-item { flex-wrap: wrap; gap: 0.3rem; }
+      .stats-row { gap: 1rem; }
+    }
+
+    body.dark {
+      background: #1a1d21;
+      color: #e6edf3;
+    }
+    body.dark .app {
+      background: #22272e;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.6);
+    }
+    body.dark .stat-number { color: #e6edf3; }
+    body.dark .stat-number.green { color: #7bc97a; }
+    body.dark .habit-item { background: #2d333b; border-color: #3d444d; }
+    body.dark .add-form input { background: #2d333b; border-color: #3d444d; color: #e6edf3; }
+    body.dark .btn { background: #3d444d; color: #e6edf3; }
+    body.dark .btn-primary { background: #2c7a3a; }
+    body.dark .btn-primary:hover { background: #1e6a30; }
+    body.dark .day-square[data-level="0"] { background: #3d444d; }
+    body.dark .day-square[data-level="1"] { background: #2b6d3b; }
+    body.dark .day-square[data-level="2"] { background: #3d8f4f; }
+    body.dark .day-square[data-level="3"] { background: #56b06b; }
+    body.dark .day-square[data-level="4"] { background: #7bc97a; }
+    body.dark .day-square[data-level="5"] { background: #a3d9a0; }
+    body.dark .btn-habit-toggle { background: #3d444d; }
+    body.dark .btn-habit-toggle.done { background: #2c7a3a; }
+    body.dark .stats-row { border-color: #3d444d; }
+    body.dark .heatmap-grid { background: transparent; }
+  </style>
+</head>
+<body>
+<div class="app" id="app">
+  <h1>📋 Habit Tracker <small>heatmap</small></h1>
+
+  <div class="stats-row">
+    <div class="stat"><span class="stat-label">🔥 streak</span><span class="stat-number green" id="streakDisplay">0</span><span class="stat-label">days</span></div>
+    <div class="stat"><span class="stat-label">🏆 longest</span><span class="stat-number" id="longestStreakDisplay">0</span></div>
+    <div class="stat" style="margin-left:auto;"><button class="btn" id="darkModeToggle" style="font-size:0.8rem;">🌙 dark</button></div>
+  </div>
+
+  <div class="add-form">
+    <input type="text" id="habitInput" placeholder="e.g. Drink water, Read ..." maxlength="60" />
+    <button class="btn btn-primary" id="addHabitBtn">+ Add habit</button>
+  </div>
+
+  <div id="habitListContainer" class="habit-list"></div>
+
+  <div class="heatmap-wrapper">
+    <div class="heatmap-header">
+      <span>📅 last 90 days</span>
+      <span id="heatmapLegend" style="font-size:0.75rem;">0 – 5+</span>
+    </div>
+    <div id="heatmapGrid" class="heatmap-grid"></div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // State
+    let habits = [];
+    let completions = {};
+
+    // DOM refs
+    const habitListEl = document.getElementById('habitListContainer');
+    const heatmapGrid = document.getElementById('heatmapGrid');
+    const streakDisplay = document.getElementById('streakDisplay');
+    const longestStreakDisplay = document.getElementById('longestStreakDisplay');
+    const habitInput = document.getElementById('habitInput');
+    const addBtn = document.getElementById('addHabitBtn');
+    const darkToggle = document.getElementById('darkModeToggle');
+
+    // Local date helpers (no UTC bug)
+    function getLocalDateStr(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function todayStr() {
+      return getLocalDateStr(new Date());
+    }
+
+    // Storage
+    function loadState() {
+      try {
+        const h = localStorage.getItem('habitData_habits');
+        const c = localStorage.getItem('habitData_completions');
+        habits = h ? JSON.parse(h) : [];
+        completions = c ? JSON.parse(c) : {};
+      } catch (_) { habits = []; completions = {}; }
+    }
+
+    function saveState() {
+      localStorage.setItem('habitData_habits', JSON.stringify(habits));
+      localStorage.setItem('habitData_completions', JSON.stringify(completions));
+    }
+
+    // Streak calculations
+    function calcStreak() {
+      let count = 0;
+      const today = new Date();
+      for (let i = 0; i < 2000; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const key = getLocalDateStr(d);
+        const comps = completions[key] || [];
+        if (comps.length > 0) count++;
+        else break;
+      }
+      return count;
+    }
+
+    function calcLongestStreak() {
+      if (Object.keys(completions).length === 0) return 0;
+      const dates = Object.keys(completions)
+        .filter(k => completions[k].length > 0)
+        .sort();
+      if (dates.length === 0) return 0;
+
+      let longest = 1, current = 1;
+      for (let i = 1; i < dates.length; i++) {
+        const prev = new Date(dates[i-1]);
+        const curr = new Date(dates[i]);
+        const diff = (curr - prev) / (1000*60*60*24);
+        if (diff === 1) {
+          current++;
+          longest = Math.max(longest, current);
+        } else {
+          current = 1;
+        }
+      }
+      return longest;
+    }
+
+    // Render functions
+    function renderHabits() {
+      const today = todayStr();
+      let html = '';
+      if (habits.length === 0) {
+        html = '<div style="color:#6b7280; font-size:0.9rem; padding:0.3rem 0;">✨ Add your first habit above</div>';
+      } else {
+        for (const h of habits) {
+          const doneToday = (completions[today] || []).includes(h.id);
+          html += `
+            <div class="habit-item" data-habit-id="${h.id}">
+              <span class="habit-name">${escHtml(h.name)}</span>
+              <div class="habit-actions">
+                <button class="btn btn-habit-toggle ${doneToday ? 'done' : ''}" data-action="toggle" data-id="${h.id}">${doneToday ? '✓ done' : '✔ mark'}</button>
+                <button class="btn btn-danger" data-action="delete" data-id="${h.id}">✕</button>
+              </div>
+            </div>
+          `;
+        }
+      }
+      habitListEl.innerHTML = html;
+
+      // Event listeners
+      habitListEl.querySelectorAll('[data-action="toggle"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          toggleHabitToday(Number(btn.dataset.id));
+        });
+      });
+      habitListEl.querySelectorAll('[data-action="delete"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          deleteHabit(Number(btn.dataset.id));
+        });
+      });
+    }
+
+    function renderHeatmap() {
+      const days = 90;
+      const today = new Date();
+      let squaresHtml = '';
+
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const key = getLocalDateStr(d);
+        const count = (completions[key] || []).length;
+
+        let level = 0;
+        if (count === 0) level = 0;
+        else if (count === 1) level = 1;
+        else if (count === 2) level = 2;
+        else if (count === 3) level = 3;
+        else if (count === 4) level = 4;
+        else level = 5;
+
+        const label = `${key} · ${count} habit${count !== 1 ? 's' : ''} completed`;
+        squaresHtml += `<div class="day-square" data-level="${level}" title="${label}"></div>`;
+      }
+
+      heatmapGrid.innerHTML = squaresHtml;
+    }
+
+    function renderAll() {
+      renderHabits();
+      renderHeatmap();
+      streakDisplay.textContent = calcStreak();
+      longestStreakDisplay.textContent = calcLongestStreak();
+    }
+
+    // Actions
+    function addHabit(name) {
+      const trimmed = name.trim();
+      if (!trimmed) return false;
+      if (trimmed.length > 60) {
+        alert('Habit name is too long (max 60 characters).');
+        return false;
+      }
+      if (habits.some(h => h.name.toLowerCase() === trimmed.toLowerCase())) {
+        alert('Habit already exists.');
+        return false;
+      }
+      habits.push({ id: Date.now(), name: trimmed });
+      saveState();
+      renderAll();
+      return true;
+    }
+
+    function toggleHabitToday(id) {
+      const today = todayStr();
+      if (!completions[today]) completions[today] = [];
+      const arr = completions[today];
+      const idx = arr.indexOf(id);
+      if (idx >= 0) {
+        arr.splice(idx, 1);
+        if (arr.length === 0) delete completions[today];
+      } else {
+        arr.push(id);
+      }
+      saveState();
+      renderAll();
+    }
+
+    function deleteHabit(id) {
+      habits = habits.filter(h => h.id !== id);
+      for (const key in completions) {
+        completions[key] = completions[key].filter(habitId => habitId !== id);
+        if (completions[key].length === 0) delete completions[key];
+      }
+      saveState();
+      renderAll();
+    }
+
+    // Utility
+    function escHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // Dark mode
+    let dark = false;
+    darkToggle.addEventListener('click', () => {
+      dark = !dark;
+      document.body.classList.toggle('dark', dark);
+      darkToggle.textContent = dark ? '☀️ light' : '🌙 dark';
+    });
+
+    // Event listeners
+    addBtn.addEventListener('click', () => {
+      const val = habitInput.value;
+      if (addHabit(val)) habitInput.value = '';
+    });
+    habitInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addBtn.click();
+      }
+    });
+
+    // Init
+    loadState();
+    renderAll();
+  })();
+</script>
+</body>
+</html>
